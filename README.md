@@ -12,13 +12,14 @@ A collection of tools for working with Spotify playlists, organized by functiona
 
 ### 2. Configure Environment
 ```bash
-# Copy the example env file
-cp shared/.env.example .env
-
-# Edit .env with your credentials
+# Create .env file in the project root
+cat > .env << 'EOF'
 SPOTIFY_CLIENT_ID=your_new_client_id_here
 SPOTIFY_CLIENT_SECRET=your_new_client_secret_here
+EOF
 ```
+
+**Important:** All tools now load credentials from `.env` automatically!
 
 ### 3. Install Dependencies
 ```bash
@@ -77,13 +78,22 @@ spotify/
 cd playlist_tracker
 
 # Basic version (read-only, no OAuth needed)
+# Edit PLAYLIST_LINKS in the script first
 python track_new_songs.py
 
 # Full version (can add songs to playlists)
+# 1. Copy and configure playlist settings:
+cp config.json.example config.json
+# 2. Edit config.json with your playlist URLs
+# 3. Run the script:
 python track_new_songs_oauth.py
 ```
 
-**Configuration:** Edit the `PLAYLIST_LINKS` and `TARGET_PLAYLIST_ID` in the scripts, or create a `config.json`.
+**Configuration:** 
+- **Credentials**: Automatically loaded from `.env` in project root
+- **Playlists**: 
+  - Basic version: Edit `PLAYLIST_LINKS` in `track_new_songs.py`
+  - OAuth version: Create `config.json` from example
 
 ---
 

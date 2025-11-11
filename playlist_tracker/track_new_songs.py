@@ -4,14 +4,16 @@ import base64
 import datetime
 from typing import List, Dict, Tuple
 import os
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import shared config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
 # Configuration file paths
 LAST_RUN_FILE = 'last_run.json'
 SONG_LOG_FILE = 'song_log.json'
-
-# Spotify API credentials
-CLIENT_ID = '36939ed42fef4a33b670d4a6b6b64db7'
-CLIENT_SECRET = '620a5965374c4330b418b277cd522183'
 
 def get_access_token(client_id: str, client_secret: str) -> str:
     """Get Spotify API access token using client credentials flow."""
@@ -163,7 +165,7 @@ def main():
     
     # Get access token
     print("\n[1/5] Authenticating with Spotify...")
-    access_token = get_access_token(CLIENT_ID, CLIENT_SECRET)
+    access_token = get_access_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
     print("✓ Authentication successful")
     
     # Load last run date

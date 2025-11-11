@@ -5,9 +5,10 @@ import datetime
 import csv
 from collections import Counter
 import timeit
+from config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
-client_id = 'REDACTED_CLIENT_ID'
-client_secret = 'REDACTED_CLIENT_SECRET'
+client_id = SPOTIFY_CLIENT_ID
+client_secret = SPOTIFY_CLIENT_SECRET
 
 token_url = 'https://accounts.spotify.com/api/token'
 method = 'POST'

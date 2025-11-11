@@ -8,13 +8,19 @@ from collections import Counter
 import base64
 import datetime
 import time
+import sys
+from pathlib import Path
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 
-start = time.time()
+# Add parent directory to path to import shared config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
-client_id = ''
-client_secret = ''
+start = time.time()
+client_id = SPOTIFY_CLIENT_ID
+client_secret = SPOTIFY_CLIENT_SECRET
+
 
 #url = 'https://open.spotify.com/playlist/348iMtCvYQQdICvrxIBbbe?si=GbdYjuDkQ7GtMV-R2cZ98Q' #kofc
 url = 'https://open.spotify.com/playlist/5USCz2dkmTbJ3nLhk4UVip?si=UnYZdZeHQH-4MGsE0Iz0SA' #not like the other

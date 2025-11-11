@@ -8,8 +8,14 @@ import requests
 import datetime
 from typing import List, Dict, Tuple
 import os
+import sys
+from pathlib import Path
 from urllib.parse import urlencode
 import webbrowser
+
+# Add parent directory to path to import shared config
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
 # Configuration file paths
 LAST_RUN_FILE = 'last_run.json'
@@ -18,10 +24,18 @@ TOKEN_CACHE_FILE = 'spotify_token_cache.json'
 CONFIG_FILE = 'config.json'
 
 def load_config() -> Dict:
-    """Load configuration from config.json"""
+    """Load playlist configuration from config.json"""
     if not os.path.exists(CONFIG_FILE):
-        print(f"Error: {CONFIG_FILE} not found. Please create it with your settings.")
-        print("See config.json.example for the format.")
+        print(f"Error: {CONFIG_FILE} not found.")
+        print("\nPlease create config.json with your playlist settings:")
+        print(json.dumps({
+            "redirect_uri": "http://localhost:8888/callback",
+            "source_playlists": [
+                "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_1",
+                "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_2"
+            ],
+            "target_playlist_id": "YOUR_TARGET_PLAYLIST_ID"
+        }, indent=2))
         exit(1)
     
     with open(CONFIG_FILE, 'r') as f:
@@ -257,21 +271,21 @@ def main():
     
     # Load configuration
     print("\n[1/6] Loading configuration...")
-    config = load_config()
+    print(f"✓ Credentials loaded from .env")
+    print(f"  - Client ID: {SPOTIFY_CLIENT_ID[:10]}...")
     
-    CLIENT_ID = config['client_id']
-    CLIENT_SECRET = config['client_secret']
+    config = load_config()
     REDIRECT_URI = config.get('redirect_uri', 'http://localhost:8888/callback')
     PLAYLIST_LINKS = config['source_playlists']
     TARGET_PLAYLIST_ID = config.get('target_playlist_id')
     
-    print(f"✓ Configuration loaded")
+    print(f"✓ Playlist configuration loaded")
     print(f"  - Source playlists: {len(PLAYLIST_LINKS)}")
     print(f"  - Target playlist: {TARGET_PLAYLIST_ID or 'Not specified'}")
     
     # Get access token
     print("\n[2/6] Authenticating with Spotify...")
-    access_token = get_user_token(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+    access_token = get_user_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, REDIRECT_URI)
     print("✓ Authentication successful")
     
     # Load last run date

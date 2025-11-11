@@ -1,0 +1,10 @@
+{
+  "redirect_uri": "http://localhost:8888/callback",
+  "source_playlists": [
+    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_1",
+    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_2",
+    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_3"
+  ],
+  "target_playlist_id": "YOUR_TARGET_PLAYLIST_ID"
+}
+
