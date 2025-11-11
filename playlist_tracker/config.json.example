@@ -2,9 +2,16 @@
   "redirect_uri": "http://localhost:8888/callback",
   "source_playlists": [
     "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_1",
-    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_2",
-    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_3"
+    "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID_2"
   ],
+  
+  "_comment_create": "Set create_new_playlist to true to create a new playlist each run, or false to use an existing target_playlist_id",
+  "create_new_playlist": true,
+  "playlist_name_template": "New Songs - {date}",
+  "playlist_description": "Automatically aggregated new songs from tracked playlists",
+  "playlist_public": true,
+  
+  "_comment_target": "If create_new_playlist is false, specify an existing playlist ID here",
   "target_playlist_id": "YOUR_TARGET_PLAYLIST_ID"
 }
 

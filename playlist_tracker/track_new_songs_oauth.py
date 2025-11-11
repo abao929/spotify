@@ -220,6 +220,42 @@ def get_track_info(track_item: Dict) -> Dict:
         'added_at': track_item['added_at']
     }
 
+def get_current_user(access_token: str) -> str:
+    """Get the current user's Spotify ID."""
+    url = 'https://api.spotify.com/v1/me'
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        raise Exception(f"Failed to get user info: {r.status_code} - {r.text}")
+    
+    return r.json()['id']
+
+def create_playlist(user_id: str, playlist_name: str, access_token: str, 
+                   description: str = "", public: bool = True) -> str:
+    """
+    Create a new playlist for the user.
+    Returns the playlist ID.
+    """
+    url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        'name': playlist_name,
+        'description': description,
+        'public': public
+    }
+    
+    r = requests.post(url, headers=headers, json=data)
+    if r.status_code not in range(200, 299):
+        raise Exception(f"Failed to create playlist: {r.status_code} - {r.text}")
+    
+    playlist_id = r.json()['id']
+    return playlist_id
+
 def add_tracks_to_playlist(playlist_id: str, track_uris: List[str], access_token: str):
     """Add tracks to a playlist."""
     url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
@@ -278,10 +314,19 @@ def main():
     REDIRECT_URI = config.get('redirect_uri', 'http://localhost:8888/callback')
     PLAYLIST_LINKS = config['source_playlists']
     TARGET_PLAYLIST_ID = config.get('target_playlist_id')
+    CREATE_NEW_PLAYLIST = config.get('create_new_playlist', False)
+    PLAYLIST_NAME_TEMPLATE = config.get('playlist_name_template', 'New Songs - {date}')
+    PLAYLIST_DESCRIPTION = config.get('playlist_description', 'Automatically aggregated new songs')
+    PLAYLIST_PUBLIC = config.get('playlist_public', True)
     
     print(f"✓ Playlist configuration loaded")
     print(f"  - Source playlists: {len(PLAYLIST_LINKS)}")
-    print(f"  - Target playlist: {TARGET_PLAYLIST_ID or 'Not specified'}")
+    if CREATE_NEW_PLAYLIST:
+        print(f"  - Mode: Create new playlist")
+        print(f"  - Template: {PLAYLIST_NAME_TEMPLATE}")
+    else:
+        print(f"  - Mode: Use existing playlist")
+        print(f"  - Target playlist: {TARGET_PLAYLIST_ID or 'Not specified'}")
     
     # Get access token
     print("\n[2/6] Authenticating with Spotify...")
@@ -345,13 +390,51 @@ def main():
         print(f"\n✓ Log saved to {SONG_LOG_FILE}")
     
     # Add to target playlist
-    print("\n[6/6] Adding tracks to target playlist...")
-    if TARGET_PLAYLIST_ID and all_new_tracks:
+    print("\n[6/6] Adding tracks to playlist...")
+    if all_new_tracks:
         track_uris = [get_track_uri(t) for t in all_new_tracks]
-        total_added = add_tracks_to_playlist(TARGET_PLAYLIST_ID, track_uris, access_token)
-        print(f"\n✓ Successfully added {total_added} tracks to playlist")
-    elif not TARGET_PLAYLIST_ID:
-        print("  ⚠ No target playlist specified in config")
+        
+        # Determine playlist ID
+        playlist_id = None
+        if CREATE_NEW_PLAYLIST:
+            # Create new playlist
+            try:
+                user_id = get_current_user(access_token)
+                
+                # Generate playlist name from template
+                now = datetime.datetime.now()
+                playlist_name = PLAYLIST_NAME_TEMPLATE.format(
+                    date=now.strftime('%Y-%m-%d'),
+                    datetime=now.strftime('%Y-%m-%d %H:%M'),
+                    month=now.strftime('%B %Y'),
+                    year=now.strftime('%Y')
+                )
+                
+                print(f"  Creating new playlist: {playlist_name}")
+                playlist_id = create_playlist(
+                    user_id, 
+                    playlist_name, 
+                    access_token,
+                    description=PLAYLIST_DESCRIPTION,
+                    public=PLAYLIST_PUBLIC
+                )
+                print(f"  ✓ Playlist created: {playlist_id}")
+                
+            except Exception as e:
+                print(f"  ✗ Failed to create playlist: {e}")
+        else:
+            playlist_id = TARGET_PLAYLIST_ID
+        
+        # Add tracks to playlist
+        if playlist_id:
+            try:
+                total_added = add_tracks_to_playlist(playlist_id, track_uris, access_token)
+                print(f"\n✓ Successfully added {total_added} tracks to playlist")
+                print(f"  Playlist URL: https://open.spotify.com/playlist/{playlist_id}")
+            except Exception as e:
+                print(f"  ✗ Failed to add tracks: {e}")
+        elif not CREATE_NEW_PLAYLIST and not TARGET_PLAYLIST_ID:
+            print("  ⚠ No target playlist specified in config")
     else:
         print("  No new tracks to add")
     
